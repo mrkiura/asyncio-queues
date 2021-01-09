@@ -6,15 +6,17 @@ import time
 async def worker(name, queue):
     while True:
         # Get a work item from the queue
-        sleep_for = await queue.get()
+        message = await queue.get()
+        sleep_for = message["sleep_for"]
+        content = message["content"]
+        sender = message["sender"]
+        recipient = message["recipient"]
 
         # sleep for the sleep_for seconds
         await asyncio.sleep(sleep_for)
-
+        print(f"Message: {content}\nFrom: {sender}\nRecipient: {recipient}\n")
         # notify the queue that the work item has been processed
         queue.task_done()
-
-        print(f"{name} has slept for {sleep_for:.2f} seconds")
 
 
 async def main():
@@ -23,11 +25,18 @@ async def main():
 
     # Generate random timings and put them into the queue.
     total_sleep_time = 0
-    for _ in range(20):
+    for index, num in enumerate(range(20,0, -1)):
         sleep_for = random.uniform(0.05, 1.0)
         total_sleep_time += sleep_for
-        queue.put_nowait(sleep_for)
+        message = {
+            "content": f"Hello user{index}",
+            "sleep_for": sleep_for,
+            "recipient": f"user{index}",
+            "sender": f"user{num}"
+        }
+        queue.put_nowait(message)
 
+    print(f"Queue has {queue.qsize()} messages.")
     # create 3 worker tasks to process queue concurrently
     tasks = []
     for i in range(3):
@@ -47,8 +56,7 @@ async def main():
     await asyncio.gather(*tasks, return_exceptions=True)
 
     print("====")
-    print(f"3 workers slept in parallel for {total_slept_for:.2f} seconds")
-    print(f"total expected sleep time: {total_sleep_time:.2f} seconds")
+    print(f"total expected sleep time: {total_sleep_time:.2f} seconds.")
 
 
 asyncio.run(main())
