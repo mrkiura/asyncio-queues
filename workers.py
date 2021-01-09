@@ -6,7 +6,10 @@ import time
 async def worker(name, queue):
     while True:
         # Get a work item from the queue
+        print(f"Queue size is {queue.qsize()}")
+        print("Retrieving message from the queue....")
         message = await queue.get()
+        print(f"Queue size is {queue.qsize()}")
         sleep_for = message["sleep_for"]
         content = message["content"]
         sender = message["sender"]
