@@ -22,6 +22,9 @@ async def consume(queue):
         # simulate io operation
         await asyncio.sleep(random.random())
 
+        # notify queue item is processed
+        queue.task_done()
+
 
 async def run(n):
     queue = asyncio.Queue()
